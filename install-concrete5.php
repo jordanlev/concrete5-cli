@@ -12,34 +12,34 @@ foreach($argv as $val) {
 	$val = explode('=', $val);
 	if (is_array($val) && count($val) > 1) {
 		switch($val[0]) {
-			case '-db-server':
+			case '--db-server':
 				$DB_SERVER = $val[1];
 				break;
-			case '-db-username':
+			case '--db-username':
 				$DB_USERNAME = $val[1];
 				break;
-			case '-db-password':
+			case '--db-password':
 				$DB_PASSWORD = $val[1];
 				break;
-			case '-db-database':
+			case '--db-database':
 				$DB_DATABASE = $val[1];
 				break;
-			case '-admin-password':
+			case '--admin-password':
 				$INSTALL_ADMIN_PASSWORD = $val[1];
 				break;
-			case '-admin-email':
+			case '--admin-email':
 				$INSTALL_ADMIN_EMAIL = $val[1];
 				break;
-			case '-starting-point':
+			case '--starting-point':
 				$INSTALL_STARTING_POINT = $val[1];
 				break;
-			case '-target':
+			case '--target':
 				$target = $val[1];
 				break;
-			case '-site':
+			case '--site':
 				$site = $val[1];
 				break;
-			case '-core':
+			case '--core':
 				$core = $val[1];
 				break;
 		}
