@@ -80,10 +80,6 @@ if (file_exists(DIR_BASE . '/config/site.php')) {
 	die("ERROR: concrete5 is already installed.\n");
 }		
 
-if ((DIR_BASE . '/concrete') != $corePath) {
-	symlink($corePath, DIR_BASE . '/concrete');
-}
-
 ## Startup check ##	
 require($corePath . '/config/base_pre.php');
 
@@ -193,11 +189,18 @@ $_POST['uPassword'] = $INSTALL_ADMIN_PASSWORD;
 $_POST['uPasswordConfirm'] = $INSTALL_ADMIN_PASSWORD;
 $_POST['uEmail'] = $INSTALL_ADMIN_EMAIL;
 
-$cnt->configure($e);
-
 if (version_compare($APP_VERSION, APP_VERSION_CLI_MINIMUM, '<')) {
 	$e->add('Your version of concrete5 must be at least ' . APP_VERSION_CLI_MINIMUM . ' to use this installer.');
 }
+
+if ($e->has()) {
+	foreach($e->getList() as $ei) {
+		print "ERROR: " . $ei . "\n";
+	}	
+	die;
+}
+
+$cnt->configure($e);
 
 if ($e->has()) {
 	foreach($e->getList() as $ei) {
