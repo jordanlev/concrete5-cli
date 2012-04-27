@@ -1,0 +1,18 @@
+// define('URL_REWRITING_ALL', true);
+define('PAGE_TITLE_FORMAT', '%2$s :: %1$s'); // "%1$s" is site name, "%2$s" is page title
+
+define('ENABLE_MARKETPLACE_SUPPORT', false);
+define('ENABLE_INTELLIGENT_SEARCH_HELP', false);
+define('ENABLE_NEWSFLOW_OVERLAY', false);
+define('ENABLE_APP_NEWS', false);
+// define('WHITE_LABEL_DASHBOARD_BACKGROUND_SRC', 'none');
+
+// define('APP_TIMEZONE', 'America/Chicago');
+// define('SESSION', 'CONCRETE5');
+// define('SESSION_MAX_LIFETIME', 7200); // browser session (seconds before user is logged out, or 0 for never)
+
+// define('EMAIL_DEFAULT_FROM_ADDRESS', 'info@jordanlev.com');
+// define('EMAIL_DEFAULT_FROM_NAME', 'Jordan Lev');
+// define('EMAIL_ADDRESS_REGISTER_NOTIFICATION', 'info@jordanlev.com, jordan@jordanlev.com');
+// define('EMAIL_ADDRESS_REGISTER_NOTIFICATION_FROM', EMAIL_DEFAULT_FROM_ADDRESS);
+// define('FORM_BLOCK_SENDER_EMAIL', EMAIL_DEFAULT_FROM_ADDRESS);
