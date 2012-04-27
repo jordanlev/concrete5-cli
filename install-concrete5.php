@@ -1,4 +1,4 @@
-#!/opt/local/bin/php
+#!/usr/bin/php
 <?php
 
 define('FILE_PERMISSIONS_MODE', 0777);
