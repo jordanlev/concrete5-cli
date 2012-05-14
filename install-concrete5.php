@@ -108,6 +108,9 @@ Loader::library('block_controller');
 Loader::library('attribute/view');
 Loader::library('attribute/controller');
 
+// UNCOMMENT FOR 5.5.2+
+# require($corePath . '/startup/file_permission_config.php');
+
 ## Load required models ##
 Loader::model('area');
 Loader::model('global_area');
