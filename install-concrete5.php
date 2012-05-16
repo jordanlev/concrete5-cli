@@ -37,7 +37,7 @@ foreach($argv as $val) {
 				$target = $val[1];
 				break;
 			case '--site':
-				$site = $val[1];
+				$site = trim($val[1], '\'"'); //remove surrounding quotes (because site name likely has spaces in it, which need to be quoted in command-line args)
 				break;
 			case '--core':
 				$core = $val[1];
