@@ -95,6 +95,8 @@ target_dir="$sites_dir$target"
 
 ##TODO: MAKE SURE SITE_DIR EXISTS BEFORE RUNNING ANYTHING!
 
+##TODO: MAKE SURE MAMP IS RUNNING!
+
 # DOWNLOAD/INSTALL C5 FILES ###################################################
 echo "Downloading Concrete5 version $c5_download_version..."
 curl -o $c5_download_zippath $c5_download_url
@@ -120,18 +122,17 @@ $mysql_bin -u$mysql_username -p$mysql_password -e "CREATE DATABASE $database DEF
 
 echo "Installing Concrete5...";
 ## TODO: Check if installer script exists!
-$c5_install_cli_bin --db-server=$cli_param_dbserver --db-username=$cli_param_dbusername --db-password=$cli_param_dbpassword --db-database=$database --admin-password=$cli_param_adminpassword --admin-email=$cli_param_adminemail --starting-point=$starting_point --target=$target_dir --site="'$site'"
-# NOTE that we have to get tricky above in the --site param -- bash scripts don't expand anything inside single quotes unless the single quotes are in double quotes (and we need some kind of quotes because site name probably has spaces in it)
-
+$c5_install_cli_bin --db-server=$cli_param_dbserver --db-username=$cli_param_dbusername --db-password=$cli_param_dbpassword --db-database=$database --admin-password=$cli_param_adminpassword --admin-email=$cli_param_adminemail --starting-point=$starting_point --target=$target_dir --site="$site"
 
 # TODO: Run the "delete lang files" thing? (maybe make it optional, because we only care if it's a client project going up to svn)
-
 
 echo >> $target_dir/config/site.php #add a newline to end of file, just in case
 cat ./add_to_config_php.txt >> $target_dir/config/site.php
 ##TODO: MAKE SURE THIS FILE EXISTS!!!
 
 echo -e "\nINSTALLATION COMPLETE!"
+echo -e "\nIf this is an addon test site, go here:"
+echo "http://localhost:8888/$target/index.php/login?rcID=41&uName=admin&uMaintainLogin=1"
 echo -e "\nIf this is a client site, remember to do the following:"
 echo "1) Go to http://localhost:8888/$target/index.php/login?rcID=55&uName=admin&uMaintainLogin=1"
 echo "2) Login (password: $cli_param_adminpassword)"
