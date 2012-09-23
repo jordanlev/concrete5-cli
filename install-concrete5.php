@@ -87,26 +87,11 @@ require($corePath . '/config/base_pre.php');
 ## Load the base config file ##
 require($corePath . '/config/base.php');
 
-## Required Loading
-require($corePath . '/startup/required.php');
-
-## Setup timezone support
-require($corePath . '/startup/timezone.php'); // must be included before any date related functions are called (php 5.3 +)
-
-## First we ensure that dispatcher is not being called directly
-require($corePath . '/startup/file_access_check.php');
-
-require($corePath . '/startup/localization.php');
-
-## Autoload core classes
-spl_autoload_register(array('Loader', 'autoloadCore'), true);
-
-## Load the database ##
-Loader::database();
-
-if (version_compare($APP_VERSION, '5.6', '>=')) {
-	require($corePath . '/startup/autoload.php');
-} else {
+if (version_compare($APP_VERSION, '5.6', '<')) {
+	
+	## Load the database ##
+	Loader::database();
+	
 	## Load required libraries ##
 	Loader::library("cache");
 	Loader::library('object');
@@ -124,7 +109,12 @@ if (version_compare($APP_VERSION, '5.6', '>=')) {
 	Loader::library('block_controller');
 	Loader::library('attribute/view');
 	Loader::library('attribute/controller');
-
+	
+	if (version_compare($APP_VERSION, '5.5.2', '>=')) {
+		## Set default permissions for new files and directories ##
+		require($corePath . '/startup/file_permission_config.php');
+	}
+	
 	## Load required models ##
 	Loader::model('area');
 	Loader::model('global_area');
@@ -153,13 +143,38 @@ if (version_compare($APP_VERSION, '5.6', '>=')) {
 	Loader::model('userinfo');
 	Loader::model('task_permission');
 	Loader::model('stack/model');
+	
+	## Setup timezone support
+	require($corePath . '/startup/timezone.php'); // must be included before any date related functions are called (php 5.3 +)
+	
+} else { //5.6+
+	
+	## Required Loading
+	require($corePath . '/startup/required.php');
+	
+	## Setup timezone support
+	require($corePath . '/startup/timezone.php'); // must be included before any date related functions are called (php 5.3 +)
+	
+	## First we ensure that dispatcher is not being called directly
+	require($corePath . '/startup/file_access_check.php');
+	
+	require($corePath . '/startup/localization.php');
+	
+	## Autoload core classes
+	spl_autoload_register(array('Loader', 'autoloadCore'), true);
+	
+	## Load the database ##
+	Loader::database();
+	
+	require($corePath . '/startup/autoload.php');
+	
+	## Exception handler
+	require($corePath . '/startup/exceptions.php');
+	
+	## Set default permissions for new files and directories ##
+	require($corePath . '/startup/file_permission_config.php');
+	
 }
-
-## Exception handler
-require($corePath . '/startup/exceptions.php');
-
-## Set default permissions for new files and directories ##
-require($corePath . '/startup/file_permission_config.php');
 
 ## Startup check, install ##	
 require($corePath . '/startup/magic_quotes_gpc_check.php');
