@@ -87,30 +87,94 @@ require($corePath . '/config/base_pre.php');
 ## Load the base config file ##
 require($corePath . '/config/base.php');
 
-## Required Loading
-require($corePath . '/startup/required.php');
-
-## Setup timezone support
-require($corePath . '/startup/timezone.php'); // must be included before any date related functions are called (php 5.3 +)
-
-## First we ensure that dispatcher is not being called directly
-require($corePath . '/startup/file_access_check.php');
-
-require($corePath . '/startup/localization.php');
-
-## Autoload core classes
-spl_autoload_register(array('Loader', 'autoloadCore'), true);
-
-## Load the database ##
-Loader::database();
-
-require($corePath . '/startup/autoload.php');
-
-## Exception handler
-require($corePath . '/startup/exceptions.php');
-
-## Set default permissions for new files and directories ##
-require($corePath . '/startup/file_permission_config.php');
+if (version_compare($APP_VERSION, '5.6', '<')) {
+	
+	## Load the database ##
+	Loader::database();
+	
+	## Load required libraries ##
+	Loader::library("cache");
+	Loader::library('object');
+	Loader::library('log');
+	Loader::library('localization');
+	Loader::library('request');
+	Loader::library('events');
+	Loader::library('model');
+	Loader::library('item_list');
+	Loader::library('view');
+	Loader::library('controller');
+	Loader::library('file/types');
+	Loader::library('block_view');
+	Loader::library('block_view_template');
+	Loader::library('block_controller');
+	Loader::library('attribute/view');
+	Loader::library('attribute/controller');
+	
+	if (version_compare($APP_VERSION, '5.5.2', '>=')) {
+		## Set default permissions for new files and directories ##
+		require($corePath . '/startup/file_permission_config.php');
+	}
+	
+	## Load required models ##
+	Loader::model('area');
+	Loader::model('global_area');
+	Loader::model('attribute/key');
+	Loader::model('attribute/value');
+	Loader::model('attribute/category');
+	Loader::model('attribute/set');
+	Loader::model('attribute/type');
+	Loader::model('block');
+	Loader::model('custom_style');
+	Loader::model('file');
+	Loader::model('file_version');
+	Loader::model('block_types');
+	Loader::model('collection');
+	Loader::model('collection_version');
+	Loader::model('collection_types');
+	Loader::model('config');
+	Loader::model('groups');
+	Loader::model('layout');  
+	Loader::model('package');
+	Loader::model('page');
+	Loader::model('page_theme');
+	Loader::model('composer_page');
+	Loader::model('permissions');
+	Loader::model('user');
+	Loader::model('userinfo');
+	Loader::model('task_permission');
+	Loader::model('stack/model');
+	
+	## Setup timezone support
+	require($corePath . '/startup/timezone.php'); // must be included before any date related functions are called (php 5.3 +)
+	
+} else { //5.6+
+	
+	## Required Loading
+	require($corePath . '/startup/required.php');
+	
+	## Setup timezone support
+	require($corePath . '/startup/timezone.php'); // must be included before any date related functions are called (php 5.3 +)
+	
+	## First we ensure that dispatcher is not being called directly
+	require($corePath . '/startup/file_access_check.php');
+	
+	require($corePath . '/startup/localization.php');
+	
+	## Autoload core classes
+	spl_autoload_register(array('Loader', 'autoloadCore'), true);
+	
+	## Load the database ##
+	Loader::database();
+	
+	require($corePath . '/startup/autoload.php');
+	
+	## Exception handler
+	require($corePath . '/startup/exceptions.php');
+	
+	## Set default permissions for new files and directories ##
+	require($corePath . '/startup/file_permission_config.php');
+	
+}
 
 ## Startup check, install ##	
 require($corePath . '/startup/magic_quotes_gpc_check.php');
