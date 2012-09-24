@@ -1,12 +1,6 @@
 #!/usr/bin/php
 <?php
 
-#TODO: CAN WE MODIFY THIS SO IT CAN BE RUN FROM THE TARGET DIR (BUT THE RELATIVE PATHS TO THE INSTALL SCRIPT WOULD STILL WORK?)
-
-#TODO: MAKE AN ARRAY OF VARIABLES SO YOU CAN CHOOSE OPTIONS! 5.5.2.1, 5.6.0.2, mebbe 5.5.1 (NOTE THAT 5.5.1 WAS THE FIRST THAT ALLOWED CLI INSTALL, SO CAN'T GO LOWER THAN THAT!)
-$c5_download_version = '5.5.2.1';
-$c5_download_url = 'http://www.concrete5.org/download_file/-/view/37862/8497/';
-
 ##NOTE: IF YOU ARE USING MAMP AND GET 'ERROR: Unable to connect to database.', SEE https://github.com/concrete5/concrete5-cli/issues/2 FOR A FIX!
 
 # DEFAULTS & SETTINGS #########################################################
@@ -17,33 +11,71 @@ define('CLI_PARAM_DBPASSWORD', 'root');
 define('CLI_PARAM_ADMINPASSWORD', 'admin');
 define('CLI_PARAM_ADMINEMAIL', 'info@jordanlev.com');
 
-define('SITES_DIR', '/Users/jordanlev/Sites/'); #YES preceeding AND trailing slash!
+define('HTDOCS_DIR', '/Users/jordanlev/Sites/'); #YES preceeding AND trailing slash!
+
 define('STARTING_POINT_NAME_SAMPLE_CONTENT', 'standard');
 define('STARTING_POINT_NAME_EMPTY_CONTENT', 'blank');
 define('MYSQL_BIN', '/Applications/MAMP/Library/bin/mysql');
 define('MYSQL_USERNAME', CLI_PARAM_DBUSERNAME);
 define('MYSQL_PASSWORD', CLI_PARAM_DBPASSWORD);
-define('FILENAME_INSTALL_C5_CLI', 'install-concrete5.php'); # file must be in same directory as this local_mamp.php script!
-define('FILENAME_ADD_TO_CONFIG_PHP', 'add_to_config_php.txt'); # file must be in same directory as this local_mamp.php script!
+#The following files must exist in the same directory as this-here local_mamp.php script:
+define('FILENAME_INSTALL_C5_CLI', 'install-concrete5.php'); //required
+define('FILENAME_LOGIN_TASKS', 'cli_temp_login_DANGER_DELETE_ME.html'); //optional (use empty string if none)
+define('FILENAME_ADD_TO_CONFIG_PHP', 'add_to_config_php.txt'); //optional (use empty string if none)
 
-# TODO: CHECK IF THE ABOVE TWO FILES EXIST IN THIS DIR. IT'S OKAY IF ADD_TO_CONFIG DOESN'T EXIST, but not the other one!
+$c5_versions = array(
+	array(
+		'name' => '5.6.0.2',
+		'url' => 'http://www.concrete5.org/download_file/-/view/44326/8497/',
+		'unzips_to' => 'concrete5.6.0.2',
+	),
+	array(
+		'name' => '5.5.2.1',
+		'url' => 'http://www.concrete5.org/download_file/-/view/37862/8497/',
+		'unzips_to' => 'concrete5.5.2.1',
+	),
+	array(
+		'name' => '5.5.1',
+		'url' => 'http://www.concrete5.org/download_file/-/view/33453/8497/',
+		'unzips_to' => 'concrete5.5.1',
+	),
+);
 
 
 # ASK USER FOR PARAMS #########################################################
 system('clear');
-echo "Concrete5 MAMP Setup Script";
-echo "===========================\n";
+echo "Concrete5 MAMP Setup Script\n";
+echo "===========================\n\n";
+
+# Choose version
+echo "Available Concrete5 versions...\n";
+for ($i = 0, $len = count($c5_versions); $i < $len; $i++) {
+	echo ($i + 1) . ') ' . $c5_versions[$i]['name'];
+	echo ($i == 0) ? ' (DEFAULT)' : '';
+	echo "\n";
+}
+echo "\n";
+$version_index = stdin("Enter number for the version to install (or leave blank for default):", false);
+$version_index = empty($version_index) ? 0 : intval($version_index);
+$version_index = ($version_index < 0 || $version_index >= count($c5_versions)) ? 0 : $version_index;
+$version = $c5_versions[$version_index];
 
 # Get target directory
-$target = stdin("Enter target directory (no trailing slash):\n" . SITES_DIR);
-$target = rtrim($target, '/');
+$target = stdin("Enter target directory (trailing slash will be stripped):\n" . HTDOCS_DIR);
+$target_url = rtrim($target, '/');
+$target_dir = HTDOCS_DIR . $target_url;
+if (is_dir($target_dir)) {
+	echo "ABORTING INSTALLATION: TARGET DIRECTORY ({$target_dir}) ALREADY EXISTS!\n";
+	exit;
+}
 
 # Get DB name
-$database = stdin("Enter database name (does not exist yet):\nDatabase Name: ");
+$database = stdin("Enter database name (must not already exist):\nDatabase Name: ");
+$database = strip_unsafe_cli_chars($database);
 
 # Get site name
-$site = stdin("Enter Site Name (no quotes/exclamations)\nSite Name: ");
-$site = str_replace(array("'", '"', '!'), '', $site); //exclamation points mess up shell commands
+$site = stdin("Enter Site Name (quotes/exclamations will be stripped)\nSite Name: ");
+$site = strip_unsafe_cli_chars($site);
 
 # Ask for sample content or blank
 $do_install_sample_content = stdin("Install C5 sample content (Y/n)?\ny/n (default y): ", false);
@@ -53,48 +85,64 @@ if (strtolower($do_install_sample_content) == "n") {
 	$starting_point = STARTING_POINT_NAME_SAMPLE_CONTENT;
 }
 
-# SET UP VARIABLES ############################################################
-$c5_download_zipfilename = "concrete{$c5_download_version}.zip";
-$c5_download_zippath = SITES_DIR . $c5_download_zipfilename;
-# TODO: WHAT IS THE ASSUMPTION WE'RE MAKING HERE? CAN WE UNMAKE IT??
-$c5_download_unzipped_dir = SITES_DIR . "concrete{$c5_download_version}"; # NOTE: We're making an assumption about the unzipped contents here!
-$target_dir = SITES_DIR . $target;
 
-##TODO: MAKE SURE SITE_DIR EXISTS BEFORE RUNNING ANYTHING!
+# CHECK DATABASE (ALSO SERVES AS A CHECK TO ENSURE MAMP IS RUNNING) ###########
+$sql = "SHOW DATABASES LIKE '{$database}'";
+$db_check = mysql_exec($sql, true);
+if (strpos($db_check, 'ERROR') === 0) {
+	echo "ABORTING INSTALLATION: THE FOLLOWING DATABASE ERROR OCCURRED: {$db_check}\n";
+	exit;
+} else if (strlen($db_check) > 0) {
+	echo "ABORTING INSTALLATION: DATABASE ({$database}) ALREADY EXISTS!\n";
+	exit;
+}
 
-##TODO: MAKE SURE MAMP IS RUNNING!
+
+# VALIDATE / SETUP DIRECTORIES AND FILES ######################################
+$c5_cli_script_path = dirname(__FILE__) . '/' . FILENAME_INSTALL_C5_CLI;
+$parent_dir = dirname($target_dir);
+$c5_download_zippath = $parent_dir . '/temp_concrete5_cli_download.zip';
+$c5_download_unzipped_dir = $parent_dir . '/' . $version['unzips_to'];
+if (!is_file($c5_cli_script_path)) {
+	echo "ABORTING INSTALLATION: CANNOT LOCATE C5 CLI INSTALL SCRIPT ({$c5_cli_script_path})!\n";
+	exit;
+}
+if (is_file($c5_download_zippath)) {
+	echo "ABORTING INSTALLATION: DOWNLOAD FILE NAME ({$c5_download_zippath}) ALREADY EXISTS!\n";
+	exit;
+}
+if (is_dir($c5_download_unzipped_dir)) {
+	echo "ABORTING INSTALLATION: DOWNLOAD UNZIPS-TO DIRECTORY NAME ({$c5_download_unzipped_dir}) ALREADY EXISTS!\n";
+	exit;
+}
+system('mkdir -p ' . $parent_dir); //Ensure the target directory's parent directory exists (the -p option does 2 things for us: creates all necessary hierarchies, *AND* silcences error output if directory already exists)
+
 
 # DOWNLOAD/INSTALL C5 FILES ###################################################
-echo "Downloading Concrete5 version {$c5_download_version}...\n";
-system("curl -o {$c5_download_zippath} {$c5_download_url}");
+echo "Downloading Concrete5 version {$version['name']}...\n";
+system("curl -o {$c5_download_zippath} {$version['url']}");
 
 echo "Unzipping {$c5_download_zippath}...\n";
-##TODO: CHECK THAT $c5_download_unzipped_dir DOES NOT EXIST
-##      (OR BETTER YET, MAKE A NEW PHONY DIRECTORTY TO UNZIP IT INTO, ETC... THEN WE DON'T CARE WHAT IT'S CALLED ETC.)
-##  (OR EVEN BETTER(??): CREATE TARGET DIR FIRST, UNZIP TO THERE, RENAME TARGET DIR WITH TEMP EXTENSION, RENAME UNZIPPED DIR TO TARGTET DIR, MOVE IT UP ONE LEVEL, THEN RMDIR THE FIRST TARGETDIR (that now has temp extension)???
-system("unzip {$c5_download_zippath} -d " . SITES_DIR);
+system("unzip {$c5_download_zippath} -d " . $parent_dir);
 
 echo "Removing downloaded file...\n";
 system("rm {$c5_download_zippath}");
 
 echo "Move Concrete5 files to target directory...\n";
-##TODO: CHECK THAT $c5_download_unzipped_dir ACTUALLY EXISTS
-##TODO: CHECK THAT $target_dir DOES **NOT** ALREADY EXIST
-system('mkdir -p ' . dirname($target_dir)); //Ensure the target directory's parent directory exists (the -p option does 2 things for us: creates all necessary hierarchies, *AND* silcences error output if directory already exists)
+if (!is_dir($c5_download_unzipped_dir)) {
+	echo "ERROR: CANNOT LOCATE UNZIPPED CONCRETE5 DIRECTORY -- EXPECTED IT IN: {$c5_download_unzipped_dir}\n";
+	exit;
+}
 system("mv {$c5_download_unzipped_dir} {$target_dir}");
 
-echo "Creating database $database...\n";
-##TODO: CHECK IF DATABASE EXISTS ALREADY!
 
-$mysql_command = MYSQL_BIN
-               . ' -u' . MYSQL_USERNAME
-               . ((MYSQL_PASSWORD == '') ? '' : ' -p' . MYSQL_PASSWORD)
-               . ' -e "CREATE DATABASE ' . $database . ' DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci"';
-system($mysql_command);
+# INSTALL DATABASE AND C5 #####################################################
+echo "Creating database $database...\n";
+$sql = "CREATE DATABASE {$database} DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci"; //don't use backticks -- they mess up command line!
+mysql_exec($sql);
 
 echo "Installing Concrete5...\n";
-## TODO: Check if installer script exists!
-$c5_install_command = dirname(__FILE__) . '/' . FILENAME_INSTALL_C5_CLI
+$c5_install_command = $c5_cli_script_path
                     . ' --db-server=' . CLI_PARAM_DBSERVER
                     . ' --db-username=' . CLI_PARAM_DBUSERNAME
                     . ' --db-password=' . CLI_PARAM_DBPASSWORD
@@ -106,29 +154,33 @@ $c5_install_command = dirname(__FILE__) . '/' . FILENAME_INSTALL_C5_CLI
                     . ' --site="' . $site . '"';
 system($c5_install_command);
 
-# TODO: Run the "delete lang files" thing? (maybe make it optional, because we only care if it's a client project going up to svn)
 
-system("echo >> {$target_dir}/config/site.php"); #add a newline to end of file, just in case
-system('cat ' . dirname(__FILE__) . '/' . FILENAME_ADD_TO_CONFIG_PHP . " >> {$target_dir}/config/site.php");
-##TODO: MAKE SURE THIS FILE EXISTS!!! (AND IF NOT, YOU'LL NEED TO ADD <?php TO THE TOP!!!)
-
-echo "\nINSTALLATION COMPLETE!\n";
-echo "\nIf this is an addon test site, go here:\n";
-echo "http://localhost:8888/{$target}/index.php/login?rcID=41&uName=admin&uMaintainLogin=1\n";
-echo "\nIf this is a client site, remember to do the following:\n";
-echo "1) Go to http://localhost:8888/{$target}/index.php/login?rcID=55&uName=admin&uMaintainLogin=1\n";
-echo "2) Login (password: " . CLI_PARAM_ADMINPASSWORD . ")\n";
-echo "3) Enable Pretty URLs\n";
-echo "4) Edit config/site.php and uncomment: define('URL_REWRITING_ALL', true);\n";
-echo "5) Add gzip/www stuff to htaccess (see add_to_htaccess.txt file in this script dir)\n";
-echo "6) Disable Cache\n";
-echo "7) Set custom text editor controls\n";
-echo "8) Add Full Sitemap to blue bar\n";
-echo "\n";
+# CUSTOMIZE CONFIG/HTACCESS FILES #############################################
+##TODO: TEST THIS WHEN NO FILE ALREADY EXISTS!
+if (FILENAME_ADD_TO_CONFIG_PHP !== '') {
+	$add_to_config_php_path = dirname(__FILE__) . '/' . FILENAME_ADD_TO_CONFIG_PHP;
+	if (is_file($add_to_config_php_path)) {
+		#add a newline to end of file (to separate our items from existing items)
+		system("echo >> {$target_dir}/config/site.php");
+	} else {
+		#create file, and put opening php tag at top
+		system('echo -e "<?php\n" >> ' . $target_dir . '/config/site.php');
+	}
+	system('cat ' . dirname(__FILE__) . '/' . FILENAME_ADD_TO_CONFIG_PHP . " >> {$target_dir}/config/site.php");
+}
 
 ##TODO: Create .htaccess and append the add_to_htaccess.txt file to it. Not sure what to do about the rewrite rule (eventually we want our own starting point with config vars, but it's not working in 5.5.2.1)
 
-function stdin($prompt, $required = true, $echo_ok_on_success = true) {
+
+# DONE! #######################################################################
+echo "\nINSTALLATION COMPLETE!\n";
+echo "Logging in...\n";
+system('cp ' . dirname(__FILE__) . '/cli_temp_login_DANGER_DELETE_ME.html ' . $target_dir . '/config/');
+system("open http://localhost:8888/{$target_url}/config/cli_temp_login_DANGER_DELETE_ME.html");
+
+
+# Utility Functions ###########################################################
+function stdin($prompt, $required = true) {
 	echo $prompt;
 	
 	$handle = fopen('php://stdin', 'r');
@@ -138,7 +190,25 @@ function stdin($prompt, $required = true, $echo_ok_on_success = true) {
 	if ($required && empty($response)) {
 		return stdin($prompt, $required);
 	} else {
-		echo "OK..\n";
+		echo "\n\n";
 		return $response;
 	}
+}
+
+//NOTE: $sql MUST NOT HAVE ANY QUOTES IN IT!!! (Apostrophes are okay though.)
+function mysql_exec($sql, $return_output = false) {
+	$command = MYSQL_BIN
+             . ' -u' . MYSQL_USERNAME
+             . ((MYSQL_PASSWORD == '') ? '' : ' -p' . MYSQL_PASSWORD)
+             . ' -e "' . $sql . '"';
+	if ($return_output) {
+		return shell_exec($command);
+	} else {
+		system($command);
+	}
+}
+
+function strip_unsafe_cli_chars($str) {
+	$bad_chars = array('"', "'", '`', '!'); //exclamations and backticks mess up command lines!
+	return str_replace($bad_chars, '', $str);
 }
