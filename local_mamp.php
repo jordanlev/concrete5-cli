@@ -21,7 +21,7 @@ define('MYSQL_USERNAME', CLI_PARAM_DBUSERNAME);
 define('MYSQL_PASSWORD', CLI_PARAM_DBPASSWORD);
 #The following files must exist in the same directory as this-here local_mamp.php script:
 define('FILENAME_INSTALL_C5_CLI', 'install-concrete5.php'); //required
-define('FILENAME_LOGIN_TASKS', 'cli_temp_login_DANGER_DELETE_ME.html'); //optional (use empty string if none)
+define('FILENAME_LOGIN_TASKS', 'temp_cli_login.html'); //optional (use empty string if none)
 define('FILENAME_ADD_TO_CONFIG_PHP', 'add_to_config_php.txt'); //optional (use empty string if none)
 
 //Available C5 versions for installation (note that 5.5.1 was the first version to allow CLI installation).
