@@ -11,17 +11,17 @@
     var dir = loc.substring(0, loc.lastIndexOf('/'));
     dir = dir + '/..';
     var url = dir + '/index.php/login/do_login'; //Assumes this file is located in SITEROOT/config/
+    var uPassword = window.location.hash.substring(1)
     var data = {
       uName: 'admin',
-      uPassword: 'admin',
+      uPassword: uPassword,
       uMaintainLogin: '1',
       format: 'JSON'
     };
     
     $.post(url, data, function(response) {
       if (parseInt(response.success)) {
-        $('#loading').hide();
-        $('#tasks').show();
+        window.location.href = dir + '/index.php/dashboard/system/optimization/cache/';
       } else {
         $('#loading').html('Error: could not log in.<br />REMEMBER TO DELETE THIS FILE NOW!!!');
       }
@@ -32,19 +32,5 @@
 
 <body>
   <p id="loading"><img src="../concrete/images/throbber_white_16.gif" width="16" height="16" alt="loading indicator" /> Logging in...</p>
-  <div id="tasks" style="display: none;">
-    <p>You have been successfully logged in as admin.</p>
-    <p>If this is an addon/theme test site: <a target="_blank" href="../index.php/dashboard/extend/install/">Install Packages</a></p>
-    <p>If this is a client site build, do the following:</p>
-    <ol>
-      <li><a target="_blank" href="../index.php/dashboard/system/optimization/cache/">Disable cache</a></li>
-      <li><a target="_blank" href="../index.php/dashboard/system/seo/urls/">Enable pretty URLs</a></li>
-      <li>Edit <code>SITEROOT/config/site.php</code> and uncomment <code>define('URL_REWRITING_ALL', true);</code></li>
-      <li><a target="_blank" href="../index.php/dashboard/system/seo/statistics/">Disable page view statistics</a></li>
-      <li><a target="_blank" href="../index.php/dashboard/system/basics/editor/">Set custom text editor controls</a> <i>(TODO: Paste control code here)</i></li>
-      <li><i>If 5.5.2.1, add sitemap page to blue bar</i></li>
-      <li><i>TODO: can we automatically inject these settings into db via install script? (probably not the pretty urls, but disable cache and page stats and Rich Text Control could!)</i></li>
-    </ol>
-    <p style="color: red; font-weight: bold; font-size: 20px;"><blink>MOST IMPORTANT:</blink> DELETE THIS FILE BEFORE DEPLOYMENT!!!!!! (<code>SITEROOT/config/cli_temp_login.html</code>)</li>
 </body>
 </html>

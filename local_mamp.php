@@ -8,10 +8,11 @@
 define('CLI_PARAM_DBSERVER', 'localhost');
 define('CLI_PARAM_DBUSERNAME', 'root');
 define('CLI_PARAM_DBPASSWORD', 'root');
-define('CLI_PARAM_ADMINPASSWORD', 'admin');
+define('CLI_PARAM_ADMINPASSWORD', 'admin'); //DON'T USE A REAL PASSWORD -- THIS GETS SENT IN QUERYSTRING TO THE TEMP LOGIN PAGE UPON INSTALLATION (WHICH MIGHT STICK AROUND IN BROWSER HISTORY ETC.)!
 define('CLI_PARAM_ADMINEMAIL', 'info@jordanlev.com');
 
 define('HTDOCS_DIR', '/Users/jordanlev/Sites/'); #YES preceeding AND trailing slash!
+define('LOCALHOST_BASE_URL', 'http://localhost:8888/'); #YES trailing slash!
 
 define('STARTING_POINT_NAME_SAMPLE_CONTENT', 'standard');
 define('STARTING_POINT_NAME_EMPTY_CONTENT', 'blank');
@@ -23,6 +24,11 @@ define('FILENAME_INSTALL_C5_CLI', 'install-concrete5.php'); //required
 define('FILENAME_LOGIN_TASKS', 'cli_temp_login_DANGER_DELETE_ME.html'); //optional (use empty string if none)
 define('FILENAME_ADD_TO_CONFIG_PHP', 'add_to_config_php.txt'); //optional (use empty string if none)
 
+//Available C5 versions for installation (note that 5.5.1 was the first version to allow CLI installation).
+//First one in list becomes default option.
+//"unzips_to" is the name of the folder that you wind up with after unzipping the download
+// (so far this has always been the word "concrete" followed by the version number,
+//  but theoretically this could change in the future?)
 $c5_versions = array(
 	array(
 		'name' => '5.6.0.2',
@@ -155,8 +161,7 @@ $c5_install_command = $c5_cli_script_path
 system($c5_install_command);
 
 
-# CUSTOMIZE CONFIG/HTACCESS FILES #############################################
-##TODO: TEST THIS WHEN NO FILE ALREADY EXISTS!
+# CUSTOMIZE CONFIG FILE #######################################################
 if (FILENAME_ADD_TO_CONFIG_PHP !== '') {
 	$add_to_config_php_path = dirname(__FILE__) . '/' . FILENAME_ADD_TO_CONFIG_PHP;
 	if (is_file($add_to_config_php_path)) {
@@ -169,14 +174,26 @@ if (FILENAME_ADD_TO_CONFIG_PHP !== '') {
 	system('cat ' . dirname(__FILE__) . '/' . FILENAME_ADD_TO_CONFIG_PHP . " >> {$target_dir}/config/site.php");
 }
 
-##TODO: Create .htaccess and append the add_to_htaccess.txt file to it. Not sure what to do about the rewrite rule (eventually we want our own starting point with config vars, but it's not working in 5.5.2.1)
 
+# LOGIN #######################################################################
+if (FILENAME_LOGIN_TASKS !== '') {
+	echo "Logging in...\n";
+	
+	$login_file_source_path = dirname(__FILE__) . '/' . FILENAME_LOGIN_TASKS;
+	$login_file_dest_path = $target_dir . '/config/' . FILENAME_LOGIN_TASKS;
+	$login_file_url = LOCALHOST_BASE_URL . $target_url . '/config/' . FILENAME_LOGIN_TASKS . '#' . CLI_PARAM_ADMINPASSWORD;
+	
+	system("cp {$login_file_source_path} {$login_file_dest_path}");
+	system("open {$login_file_url}");
+	echo "Deleting temporary login file ({$login_file_dest_path}) in 5 seconds...";
+	shell_exec('sleep 5');
+	system("rm {$login_file_dest_path}");
+	echo "\nTemporary login file ({$login_file_dest_path}) has been deleted.";
+}
 
 # DONE! #######################################################################
-echo "\nINSTALLATION COMPLETE!\n";
-echo "Logging in...\n";
-system('cp ' . dirname(__FILE__) . '/cli_temp_login_DANGER_DELETE_ME.html ' . $target_dir . '/config/');
-system("open http://localhost:8888/{$target_url}/config/cli_temp_login_DANGER_DELETE_ME.html");
+system("open {$target_dir}");
+echo "\n\n=====\nDONE!\n=====\n\n";
 
 
 # Utility Functions ###########################################################
