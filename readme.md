@@ -1,4 +1,4 @@
-# Concrete5 Improved Command-Line Installer<br />_for OSX/MAMP development and testing_
+# Concrete5 Command-Line Installer <br /> _Improved for OSX/MAMP development and testing!_
 Improves the Concrete5 command-line installer in numerous ways:
  * Automates database creation, C5 download, config file setup, and admin login
  * Specifically-tailored to work with MAMP on OSX
