@@ -1,28 +1,19 @@
 #!/usr/bin/php
 <?php
 
-##NOTE: IF YOU ARE USING MAMP AND GET 'ERROR: Unable to connect to database.', SEE https://github.com/concrete5/concrete5-cli/issues/2 FOR A FIX!
+# SETTINGS ####################################################################
+#The following files must exist in the same directory as this-here local_mamp.php script:
+define('FILENAME_SETTINGS', 'settings.php'); //required
+define('FILENAME_INSTALL_C5_CLI', 'install-concrete5.php'); //required
+define('FILENAME_ADD_TO_CONFIG', 'append_to_config_site_php.txt'); //optional (use empty string if none)
+define('FILENAME_CLI_LOGIN', 'temp_cli_login.html'); //optional (use empty string if none)
 
-# DEFAULTS & SETTINGS #########################################################
-
-define('CLI_PARAM_DBSERVER', 'localhost');
-define('CLI_PARAM_DBUSERNAME', 'root');
-define('CLI_PARAM_DBPASSWORD', 'root');
-define('CLI_PARAM_ADMINPASSWORD', 'admin'); //DON'T USE A REAL PASSWORD -- THIS GETS SENT IN QUERYSTRING TO THE TEMP LOGIN PAGE UPON INSTALLATION (WHICH MIGHT STICK AROUND IN BROWSER HISTORY ETC.)!
-define('CLI_PARAM_ADMINEMAIL', 'info@jordanlev.com');
-
-define('HTDOCS_DIR', '/Users/jordanlev/Sites/'); #YES preceeding AND trailing slash!
-define('LOCALHOST_BASE_URL', 'http://localhost:8888/'); #YES trailing slash!
-
+require(dirname(__FILE__) . '/' . FILENAME_SETTINGS);
 define('STARTING_POINT_NAME_SAMPLE_CONTENT', 'standard');
 define('STARTING_POINT_NAME_EMPTY_CONTENT', 'blank');
 define('MYSQL_BIN', '/Applications/MAMP/Library/bin/mysql');
 define('MYSQL_USERNAME', CLI_PARAM_DBUSERNAME);
 define('MYSQL_PASSWORD', CLI_PARAM_DBPASSWORD);
-#The following files must exist in the same directory as this-here local_mamp.php script:
-define('FILENAME_INSTALL_C5_CLI', 'install-concrete5.php'); //required
-define('FILENAME_LOGIN_TASKS', 'temp_cli_login.html'); //optional (use empty string if none)
-define('FILENAME_ADD_TO_CONFIG_PHP', 'add_to_config_php.txt'); //optional (use empty string if none)
 
 //Available C5 versions for installation (note that 5.5.1 was the first version to allow CLI installation).
 //First one in list becomes default option.
@@ -67,9 +58,9 @@ $version_index = ($version_index < 0 || $version_index >= count($c5_versions)) ?
 $version = $c5_versions[$version_index];
 
 # Get target directory
-$target = stdin("Enter target directory (trailing slash will be stripped):\n" . HTDOCS_DIR);
-$target_url = rtrim($target, '/');
-$target_dir = HTDOCS_DIR . $target_url;
+$htdocs_dir = '/' . trim(HTDOCS_DIR, '/') . '/';
+$target = stdin("Enter target directory (trailing slash will be stripped):\n" . $htdocs_dir);
+$target_dir = $htdocs_dir . $target_url;
 if (is_dir($target_dir)) {
 	echo "ABORTING INSTALLATION: TARGET DIRECTORY ({$target_dir}) ALREADY EXISTS!\n";
 	exit;
@@ -149,12 +140,12 @@ mysql_exec($sql);
 
 echo "Installing Concrete5...\n";
 $c5_install_command = $c5_cli_script_path
-                    . ' --db-server=' . CLI_PARAM_DBSERVER
-                    . ' --db-username=' . CLI_PARAM_DBUSERNAME
-                    . ' --db-password=' . CLI_PARAM_DBPASSWORD
+                    . ' --db-server=' . DB_SERVER
+                    . ' --db-username=' . DB_USERNAME
+                    . ' --db-password=' . DB_PASSWORD
                     . ' --db-database=' . $database
-                    . ' --admin-password=' . CLI_PARAM_ADMINPASSWORD
-                    . ' --admin-email=' . CLI_PARAM_ADMINEMAIL
+                    . ' --admin-password=' . DB_PASSWORD
+                    . ' --admin-email=' . ADMIN_EMAIL
                     . ' --starting-point=' . $starting_point
                     . ' --target=' . $target_dir
                     . ' --site="' . $site . '"';
@@ -162,8 +153,8 @@ system($c5_install_command);
 
 
 # CUSTOMIZE CONFIG FILE #######################################################
-if (FILENAME_ADD_TO_CONFIG_PHP !== '') {
-	$add_to_config_php_path = dirname(__FILE__) . '/' . FILENAME_ADD_TO_CONFIG_PHP;
+if (FILENAME_ADD_TO_CONFIG !== '') {
+	$add_to_config_php_path = dirname(__FILE__) . '/' . FILENAME_ADD_TO_CONFIG;
 	if (is_file($add_to_config_php_path)) {
 		#add a newline to end of file (to separate our items from existing items)
 		system("echo >> {$target_dir}/config/site.php");
@@ -171,17 +162,17 @@ if (FILENAME_ADD_TO_CONFIG_PHP !== '') {
 		#create file, and put opening php tag at top
 		system('echo -e "<?php\n" >> ' . $target_dir . '/config/site.php');
 	}
-	system('cat ' . dirname(__FILE__) . '/' . FILENAME_ADD_TO_CONFIG_PHP . " >> {$target_dir}/config/site.php");
+	system('cat ' . dirname(__FILE__) . '/' . FILENAME_ADD_TO_CONFIG . " >> {$target_dir}/config/site.php");
 }
 
 
 # LOGIN #######################################################################
-if (FILENAME_LOGIN_TASKS !== '') {
+if (FILENAME_CLI_LOGIN !== '') {
 	echo "Logging in...\n";
 	
-	$login_file_source_path = dirname(__FILE__) . '/' . FILENAME_LOGIN_TASKS;
-	$login_file_dest_path = $target_dir . '/config/' . FILENAME_LOGIN_TASKS;
-	$login_file_url = LOCALHOST_BASE_URL . $target_url . '/config/' . FILENAME_LOGIN_TASKS . '#' . CLI_PARAM_ADMINPASSWORD;
+	$login_file_source_path = dirname(__FILE__) . '/' . FILENAME_CLI_LOGIN;
+	$login_file_dest_path = $target_dir . '/config/' . FILENAME_CLI_LOGIN;
+	$login_file_url = rtrim(BASE_URL, '/') . '/' . $target_url . '/config/' . FILENAME_CLI_LOGIN . '#' . DB_PASSWORD;
 	
 	system("cp {$login_file_source_path} {$login_file_dest_path}");
 	system("open {$login_file_url}");
