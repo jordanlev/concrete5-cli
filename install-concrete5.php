@@ -51,7 +51,7 @@ if (!$INSTALL_STARTING_POINT) {
 	$INSTALL_STARTING_POINT = 'blank';
 }
 
-if ($target) {
+if (!empty($target)) {
 	if (substr($target, 0, 1) == '/') {
 		define('DIR_BASE', $target);
 	} else { 
@@ -61,7 +61,7 @@ if ($target) {
 	define('DIR_BASE', dirname(__FILE__));
 }
 
-if ($core) {
+if (!empty($core)) {
 	if (substr($core, 0, 1) == '/') {
 		$corePath = $core;	
 	} else {
@@ -152,7 +152,7 @@ $_POST['DB_SERVER'] = $DB_SERVER;
 $_POST['DB_USERNAME'] = $DB_USERNAME;
 $_POST['DB_PASSWORD'] = $DB_PASSWORD;
 $_POST['DB_DATABASE'] = $DB_DATABASE;
-if ($site) {
+if (!empty($site)) {
 	$_POST['SITE'] = $site;
 } else {
 	$_POST['SITE'] = 'concrete5 Site';
