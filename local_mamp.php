@@ -17,23 +17,33 @@ define('MYSQL_BIN', '/Applications/MAMP/Library/bin/mysql');
 //First one in list becomes default option.
 //"unzips_to" is the name of the folder that you wind up with after unzipping the download
 // (so far this has always been the word "concrete" followed by the version number,
-//  but theoretically this could change in the future?)
+//  but theoretically this could change in the future?).
 $c5_versions = array(
 	array(
 		'name' => '5.6.0.2',
 		'url' => 'http://www.concrete5.org/download_file/-/view/44326/8497/',
 		'unzips_to' => 'concrete5.6.0.2',
 	),
+	// array(
+	// 	'name' => '5.6.0.1',
+	// 	'url' => 'http://www.concrete5.org/download_file/-/view/43620/8497/',
+	// 	'unzips_to' => 'concrete5.6.0.1',
+	// ),
+	// array(
+	// 	'name' => '5.6.0',
+	// 	'url' => 'http://www.concrete5.org/download_file/-/view/43239/8497/',
+	// 	'unzips_to' => 'concrete5.6.0',
+	// ),
 	array(
 		'name' => '5.5.2.1',
 		'url' => 'http://www.concrete5.org/download_file/-/view/37862/8497/',
 		'unzips_to' => 'concrete5.5.2.1',
 	),
-	array(
-		'name' => '5.5.2',
-		'url' => 'http://www.concrete5.org/download_file/-/view/36984/8497/',
-		'unzips_to' => 'concrete5.5.2',
-	),
+	// array(
+	// 	'name' => '5.5.2',
+	// 	'url' => 'http://www.concrete5.org/download_file/-/view/36984/8497/',
+	// 	'unzips_to' => 'concrete5.5.2',
+	// ),
 	array(
 		'name' => '5.5.1',
 		'url' => 'http://www.concrete5.org/download_file/-/view/33453/8497/',
