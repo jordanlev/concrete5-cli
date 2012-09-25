@@ -60,7 +60,7 @@ $version = $c5_versions[$version_index];
 # Get target directory
 $htdocs_dir = '/' . trim(HTDOCS_DIR, '/') . '/';
 $target = stdin("Enter target directory (trailing slash will be stripped):\n" . $htdocs_dir);
-$target_dir = $htdocs_dir . $target_url;
+$target_dir = $htdocs_dir . trim($target, '/');
 if (is_dir($target_dir)) {
 	echo "ABORTING INSTALLATION: TARGET DIRECTORY ({$target_dir}) ALREADY EXISTS!\n";
 	exit;
