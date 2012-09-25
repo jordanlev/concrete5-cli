@@ -3,10 +3,10 @@ define('DB_SERVER', 'localhost');
 define('DB_USERNAME', 'root');
 define('DB_PASSWORD', 'root');
 
-define('HTDOCS_DIR', '/Applications/MAMP/htdocs/');
-define('BASE_URL', 'http://localhost:8888');
+define('HTDOCS_DIR', '/Users/jordanlev/Sites/'); //Must be the top-level htdocs directory (not a subdirectory -- that can be entered later during the installation process)
+define('BASE_URL', 'http://localhost:8888'); //Must be the url to the top-level htdocs directory
 
-define('ADMIN_EMAIL', 'you@example.com');
+define('ADMIN_EMAIL', 'info@jordanlev.com');
 define('ADMIN_PASSWORD', 'admin'); //<--DON'T USE A REAL PASSWORD! (see note below)
 /**
  * NOTE: For security purposes, the ADMIN_PASSWORD should be something generic (e.g. "admin" or "password")

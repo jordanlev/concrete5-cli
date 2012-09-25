@@ -12,8 +12,6 @@ require(dirname(__FILE__) . '/' . FILENAME_SETTINGS);
 define('STARTING_POINT_NAME_SAMPLE_CONTENT', 'standard');
 define('STARTING_POINT_NAME_EMPTY_CONTENT', 'blank');
 define('MYSQL_BIN', '/Applications/MAMP/Library/bin/mysql');
-define('MYSQL_USERNAME', CLI_PARAM_DBUSERNAME);
-define('MYSQL_PASSWORD', CLI_PARAM_DBPASSWORD);
 
 //Available C5 versions for installation (note that 5.5.1 was the first version to allow CLI installation).
 //First one in list becomes default option.
@@ -32,11 +30,29 @@ $c5_versions = array(
 		'unzips_to' => 'concrete5.5.2.1',
 	),
 	array(
+		'name' => '5.5.2',
+		'url' => 'http://www.concrete5.org/download_file/-/view/36984/8497/',
+		'unzips_to' => 'concrete5.5.2',
+	),
+	array(
 		'name' => '5.5.1',
 		'url' => 'http://www.concrete5.org/download_file/-/view/33453/8497/',
 		'unzips_to' => 'concrete5.5.1',
 	),
 );
+
+
+# VALIDATE CONFIG SETTINGS ####################################################
+$c5_cli_script_path = dirname(__FILE__) . '/' . FILENAME_INSTALL_C5_CLI;
+if (!is_file($c5_cli_script_path)) {
+	echo "ABORTING INSTALLATION: CANNOT LOCATE C5 CLI INSTALL SCRIPT ({$c5_cli_script_path})!\n";
+	exit;
+}
+
+if (strlen(ADMIN_PASSWORD) < 5 || strlen(ADMIN_PASSWORD) > 64) {
+	echo "ABORTING INSTALLATION: ADMIN PASSWORD MUST BE BETWEEN 5 AND 64 CHARACTERS!\n";
+	exit;
+}
 
 
 # ASK USER FOR PARAMS #########################################################
@@ -52,19 +68,22 @@ for ($i = 0, $len = count($c5_versions); $i < $len; $i++) {
 	echo "\n";
 }
 echo "\n";
-$version_index = stdin("Enter number for the version to install (or leave blank for default):", false);
-$version_index = empty($version_index) ? 0 : intval($version_index);
-$version_index = ($version_index < 0 || $version_index >= count($c5_versions)) ? 0 : $version_index;
-$version = $c5_versions[$version_index];
+$version_choice = stdin("Enter line number (1, 2, 3, etc.) for the version to install (or leave blank for default):", false);
+$version_choice = empty($version_choice) ? 1 : intval($version_choice);
+$version_choice = ($version_choice < 1 || $version_choice > count($c5_versions)) ? 1 : $version_choice;
+$version = $c5_versions[($version_choice-1)];
 
 # Get target directory
 $htdocs_dir = '/' . trim(HTDOCS_DIR, '/') . '/';
+$htdocs_url = rtrim(BASE_URL, '/') . '/';
 $target = stdin("Enter target directory (trailing slash will be stripped):\n" . $htdocs_dir);
 $target_dir = $htdocs_dir . trim($target, '/');
+$target_url = $htdocs_url . trim($target, '/');
 if (is_dir($target_dir)) {
 	echo "ABORTING INSTALLATION: TARGET DIRECTORY ({$target_dir}) ALREADY EXISTS!\n";
 	exit;
 }
+
 
 # Get DB name
 $database = stdin("Enter database name (must not already exist):\nDatabase Name: ");
@@ -95,15 +114,11 @@ if (strpos($db_check, 'ERROR') === 0) {
 }
 
 
-# VALIDATE / SETUP DIRECTORIES AND FILES ######################################
-$c5_cli_script_path = dirname(__FILE__) . '/' . FILENAME_INSTALL_C5_CLI;
+# VALIDATE & SETUP DIRECTORIES AND FILES ######################################
 $parent_dir = dirname($target_dir);
 $c5_download_zippath = $parent_dir . '/temp_concrete5_cli_download.zip';
 $c5_download_unzipped_dir = $parent_dir . '/' . $version['unzips_to'];
-if (!is_file($c5_cli_script_path)) {
-	echo "ABORTING INSTALLATION: CANNOT LOCATE C5 CLI INSTALL SCRIPT ({$c5_cli_script_path})!\n";
-	exit;
-}
+
 if (is_file($c5_download_zippath)) {
 	echo "ABORTING INSTALLATION: DOWNLOAD FILE NAME ({$c5_download_zippath}) ALREADY EXISTS!\n";
 	exit;
@@ -132,6 +147,9 @@ if (!is_dir($c5_download_unzipped_dir)) {
 }
 system("mv {$c5_download_unzipped_dir} {$target_dir}");
 
+if ($version['name'] == '5.5.1') {
+	fix_551_install_controller_bug($target_dir);
+}
 
 # INSTALL DATABASE AND C5 #####################################################
 echo "Creating database $database...\n";
@@ -144,7 +162,7 @@ $c5_install_command = $c5_cli_script_path
                     . ' --db-username=' . DB_USERNAME
                     . ' --db-password=' . DB_PASSWORD
                     . ' --db-database=' . $database
-                    . ' --admin-password=' . DB_PASSWORD
+                    . ' --admin-password=' . ADMIN_PASSWORD
                     . ' --admin-email=' . ADMIN_EMAIL
                     . ' --starting-point=' . $starting_point
                     . ' --target=' . $target_dir
@@ -154,8 +172,9 @@ system($c5_install_command);
 
 # CUSTOMIZE CONFIG FILE #######################################################
 if (FILENAME_ADD_TO_CONFIG !== '') {
+	echo "Customizing config/site.php file...\n";
 	$add_to_config_php_path = dirname(__FILE__) . '/' . FILENAME_ADD_TO_CONFIG;
-	if (is_file($add_to_config_php_path)) {
+	if (is_file($add_to_config_php_path) && filesize($add_to_config_php_path) > 0) {
 		#add a newline to end of file (to separate our items from existing items)
 		system("echo >> {$target_dir}/config/site.php");
 	} else {
@@ -166,13 +185,15 @@ if (FILENAME_ADD_TO_CONFIG !== '') {
 }
 
 
-# LOGIN #######################################################################
+# OPEN FILES & LOGIN ##########################################################
+system("open {$target_dir}");
+
 if (FILENAME_CLI_LOGIN !== '') {
 	echo "Logging in...\n";
 	
 	$login_file_source_path = dirname(__FILE__) . '/' . FILENAME_CLI_LOGIN;
 	$login_file_dest_path = $target_dir . '/config/' . FILENAME_CLI_LOGIN;
-	$login_file_url = rtrim(BASE_URL, '/') . '/' . $target_url . '/config/' . FILENAME_CLI_LOGIN . '#' . DB_PASSWORD;
+	$login_file_url = $target_url . '/config/' . FILENAME_CLI_LOGIN . '#' . ADMIN_PASSWORD;
 	
 	system("cp {$login_file_source_path} {$login_file_dest_path}");
 	system("open {$login_file_url}");
@@ -182,9 +203,11 @@ if (FILENAME_CLI_LOGIN !== '') {
 	echo "\nTemporary login file ({$login_file_dest_path}) has been deleted.";
 }
 
+
 # DONE! #######################################################################
-system("open {$target_dir}");
-echo "\n\n=====\nDONE!\n=====\n\n";
+echo "\n\nYour new site ({$site}) has been successfully installed!\n";
+echo str_repeat('=', strlen($site));
+echo "=================================================\n\n";
 
 
 # Utility Functions ###########################################################
@@ -206,8 +229,8 @@ function stdin($prompt, $required = true) {
 //NOTE: $sql MUST NOT HAVE ANY QUOTES IN IT!!! (Apostrophes are okay though.)
 function mysql_exec($sql, $return_output = false) {
 	$command = MYSQL_BIN
-             . ' -u' . MYSQL_USERNAME
-             . ((MYSQL_PASSWORD == '') ? '' : ' -p' . MYSQL_PASSWORD)
+             . ' -u' . DB_USERNAME
+             . ((DB_PASSWORD == '') ? '' : ' -p' . DB_PASSWORD)
              . ' -e "' . $sql . '"';
 	if ($return_output) {
 		return shell_exec($command);
@@ -219,4 +242,19 @@ function mysql_exec($sql, $return_output = false) {
 function strip_unsafe_cli_chars($str) {
 	$bad_chars = array('"', "'", '`', '!'); //exclamations and backticks mess up command lines!
 	return str_replace($bad_chars, '', $str);
+}
+
+function fix_551_install_controller_bug($target_dir) {
+	$file = $target_dir . '/concrete/controllers/install.php';
+	
+	$size = filesize($file);
+	$handle = fopen($file, 'r');
+	$contents = fread($handle, $size);
+	fclose($handle);
+	
+	$contents = str_replace("\$this->redirect('/');", "if (PHP_SAPI != 'cli') { \$this->redirect('/'); }", $contents);
+
+	$handle = fopen($file, 'w');
+	fwrite($handle, $contents);
+	fclose($handle);
 }
