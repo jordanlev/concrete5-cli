@@ -1,5 +1,4 @@
 // define('URL_REWRITING_ALL', true);
-define('PAGE_TITLE_FORMAT', '%2$s :: %1$s'); // "%1$s" is site name, "%2$s" is page title
 
 define('ENABLE_MARKETPLACE_SUPPORT', false);
 define('ENABLE_INTELLIGENT_SEARCH_HELP', false);
@@ -7,6 +6,7 @@ define('ENABLE_NEWSFLOW_OVERLAY', false);
 define('ENABLE_APP_NEWS', false);
 define('WHITE_LABEL_DASHBOARD_BACKGROUND_SRC', 'none');
 
+// define('PAGE_TITLE_FORMAT', '%2$s :: %1$s'); // "%1$s" is site name, "%2$s" is page title
 // define('APP_TIMEZONE', 'America/Chicago');
 // define('SESSION', 'CONCRETE5');
 // define('SESSION_MAX_LIFETIME', 7200); // browser session (seconds before user is logged out, or 0 for never)
