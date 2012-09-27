@@ -1,12 +1,12 @@
 #!/usr/bin/php
 <?php
 
-# SETTINGS ####################################################################
 #The following files must exist in the same directory as this-here local_mamp.php script:
 define('FILENAME_SETTINGS', 'settings.php'); //required
 define('FILENAME_INSTALL_C5_CLI', 'install-concrete5.php'); //required
 define('FILENAME_ADD_TO_CONFIG', 'append_to_config_site_php.txt'); //optional (use empty string if none)
 define('FILENAME_CLI_LOGIN', 'temp_cli_login.html'); //optional (use empty string if none)
+define('FILENAME_ZENDLOCALEDATA_BLACKLIST', 'remove_zend_locale_data.txt'); //required if REMOVE_NONENGLIGH_ZEND_LOCALE_DATA is TRUE
 
 require(dirname(__FILE__) . '/' . FILENAME_SETTINGS);
 define('STARTING_POINT_NAME_SAMPLE_CONTENT', 'standard');
@@ -195,7 +195,47 @@ if (FILENAME_ADD_TO_CONFIG !== '') {
 }
 
 
-# OPEN FILES & LOGIN ##########################################################
+# REMOVE NON-ENGLISH ZEND_LOCALE_DATA #########################################
+if (REMOVE_NONENGLIGH_ZEND_LOCALE_DATA) {
+	echo "Removing non-english Zend/Locale/Data files...\n";
+	
+	$blacklist_file = dirname(__FILE__) . '/' . FILENAME_ZENDLOCALEDATA_BLACKLIST;
+	$blacklist_contents = file_get_contents($blacklist_file);
+	$blacklist_contents = str_replace("\r\n", "\n", $blacklist_contents);
+	$blacklist_contents = str_replace("\r", "\n", $blacklist_contents);
+	$remove_filenames = explode("\n", $blacklist_contents);
+	
+	$zend_locale_data_dir = $target_dir . '/concrete/libraries/3rdparty/Zend/Locale/Data'; //NO trailing slash!
+	
+	foreach ($remove_filenames as $filename) {
+		if (!empty($filename)) {
+			unlink("{$zend_locale_data_dir}/{$filename}");
+		}
+	}
+}
+
+
+# REMOVE EMPTY TOP-LEVEL FOLDERS ##############################################
+if (REMOVE_EMPTY_TOPLEVEL_FOLDERS) {
+	echo "Removing empty top-level folders...\n";
+	rmdir("{$target_dir}/controllers");
+	rmdir("{$target_dir}/css");
+	rmdir("{$target_dir}/elements");
+	rmdir("{$target_dir}/helpers");
+	rmdir("{$target_dir}/jobs");
+	rmdir("{$target_dir}/js");
+	rmdir("{$target_dir}/languages");
+	rmdir("{$target_dir}/libraries");
+	rmdir("{$target_dir}/mail");
+	rmdir("{$target_dir}/models");
+	rmdir("{$target_dir}/page_types");
+	rmdir("{$target_dir}/single_pages");
+	rmdir("{$target_dir}/tools");
+	rmdir("{$target_dir}/updates");
+}
+
+
+# OPEN SITE IN FINDER & LOGIN IN BROWSER ######################################
 system("open {$target_dir}");
 
 if (FILENAME_CLI_LOGIN !== '') {
