@@ -232,6 +232,8 @@ if (REMOVE_EMPTY_TOPLEVEL_FOLDERS) {
 	rmdir("{$target_dir}/single_pages");
 	rmdir("{$target_dir}/tools");
 	rmdir("{$target_dir}/updates");
+	unlink("{$target_dir}/INSTALL");
+	unlink("{$target_dir}/LICENSE.TXT");
 }
 
 
