@@ -1,17 +1,18 @@
 #!/usr/bin/php
 <?php
 
-#The following files must exist in the same directory as this-here local_mamp.php script:
+# INTERNAL SETTINGS ###########################################################
+define('MYSQL_BIN', '/Applications/MAMP/Library/bin/mysql');
+
+define('STARTING_POINT_NAME_SAMPLE_CONTENT', 'standard');
+define('STARTING_POINT_NAME_EMPTY_CONTENT', 'blank');
+
+//The following files must exist in the same directory as this-here local_mamp.php script:
 define('FILENAME_SETTINGS', 'settings.php'); //required
 define('FILENAME_INSTALL_C5_CLI', 'install-concrete5.php'); //required
 define('FILENAME_ADD_TO_CONFIG', 'append_to_config_site_php.txt'); //optional (use empty string if none)
 define('FILENAME_CLI_LOGIN', 'temp_cli_login.html'); //optional (use empty string if none)
-define('FILENAME_ZENDLOCALEDATA_BLACKLIST', 'remove_zend_locale_data.txt'); //required if REMOVE_NONENGLIGH_ZEND_LOCALE_DATA is TRUE
-
-require(dirname(__FILE__) . '/' . FILENAME_SETTINGS);
-define('STARTING_POINT_NAME_SAMPLE_CONTENT', 'standard');
-define('STARTING_POINT_NAME_EMPTY_CONTENT', 'blank');
-define('MYSQL_BIN', '/Applications/MAMP/Library/bin/mysql');
+define('FILENAME_ZENDLOCALEDATA_BLACKLIST', 'remove_zend_locale_data.txt'); //optional (use empty string if none).
 
 //Available C5 versions for installation (note that 5.5.1 was the first version to allow CLI installation).
 //First one in list becomes default option.
@@ -52,6 +53,15 @@ $c5_versions = array(
 );
 
 
+# LOAD USER SETTINGS ##########################################################
+$settings_file_path = dirname(__FILE__) . '/' . FILENAME_SETTINGS;
+if (!is_file($settings_file_path)) {
+	echo "ABORTING INSTALLATION: CANNOT LOCATE SETTINGS FILE ({$settings_file_path})!\n";
+	exit;
+}
+require($settings_file_path);
+
+
 # VALIDATE CONFIG SETTINGS ####################################################
 $c5_cli_script_path = dirname(__FILE__) . '/' . FILENAME_INSTALL_C5_CLI;
 if (!is_file($c5_cli_script_path)) {
@@ -62,6 +72,15 @@ if (!is_file($c5_cli_script_path)) {
 if (strlen(ADMIN_PASSWORD) < 5 || strlen(ADMIN_PASSWORD) > 64) {
 	echo "ABORTING INSTALLATION: ADMIN PASSWORD MUST BE BETWEEN 5 AND 64 CHARACTERS!\n";
 	exit;
+}
+
+$zend_locale_data_blacklist = '';
+if (FILENAME_ZENDLOCALEDATA_BLACKLIST !== '') {
+	$zend_locale_data_blacklist = dirname(__FILE__) . '/' . FILENAME_ZENDLOCALEDATA_BLACKLIST;
+	if (!is_file($zend_locale_data_blacklist)) {
+		echo "ABORTING INSTALLATION: CANNOT LOCATE ZEND LOCALE DATA BLACKLIST ({$zend_locale_data_blacklist})!\n";
+		exit;
+	}
 }
 
 
@@ -86,9 +105,9 @@ $version = $c5_versions[($version_choice-1)];
 # Get target directory
 $htdocs_dir = '/' . trim(HTDOCS_DIR, '/') . '/';
 $htdocs_url = rtrim(BASE_URL, '/') . '/';
-$target = stdin("Enter target directory (trailing slash will be stripped):\n" . $htdocs_dir);
-$target_dir = $htdocs_dir . trim($target, '/');
-$target_url = $htdocs_url . trim($target, '/');
+$response = stdin("Enter target directory (trailing slash will be stripped):\n" . $htdocs_dir);
+$target_dir = $htdocs_dir . trim($response, '/');
+$target_url = $htdocs_url . trim($response, '/');
 if (is_dir($target_dir)) {
 	echo "ABORTING INSTALLATION: TARGET DIRECTORY ({$target_dir}) ALREADY EXISTS!\n";
 	exit;
@@ -104,11 +123,18 @@ $site = stdin("Enter Site Name (quotes/exclamations will be stripped)\nSite Name
 $site = strip_unsafe_cli_chars($site);
 
 # Ask for sample content or blank
-$do_install_sample_content = stdin("Install C5 sample content (Y/n)?\ny/n (default y): ", false);
-if (strtolower($do_install_sample_content) == "n") {
-	$starting_point = STARTING_POINT_NAME_EMPTY_CONTENT;
+$response = stdin("Install C5 sample content (Y/n)?\ny/n (default y): ", false);
+$starting_point = (strtolower($response) == "n") ? STARTING_POINT_NAME_EMPTY_CONTENT : STARTING_POINT_NAME_SAMPLE_CONTENT;
+
+# Ask about optional functionality
+$response = stdin("Remove empty top-level folders (y/N)?\ny/n (default: n): ", false);
+$remove_empty_toplevel_folders = (strtolower($response) == 'y');
+
+if (empty($zend_locale_data_blacklist)) {
+	echo "Zend Locale Data: All files will remain in the installation because no blacklist file was specified.\n\n";
 } else {
-	$starting_point = STARTING_POINT_NAME_SAMPLE_CONTENT;
+	$response = stdin("Remove non-english Zend Locale Data (y/N)?\ny/n (default: n): ", false);
+	$remove_nonengligh_zend_locale_data = (strtolower($response) == 'y');
 }
 
 
@@ -196,11 +222,10 @@ if (FILENAME_ADD_TO_CONFIG !== '') {
 
 
 # REMOVE NON-ENGLISH ZEND_LOCALE_DATA #########################################
-if (REMOVE_NONENGLIGH_ZEND_LOCALE_DATA) {
+if ($remove_nonengligh_zend_locale_data) {
 	echo "Removing non-english Zend/Locale/Data files...\n";
 	
-	$blacklist_file = dirname(__FILE__) . '/' . FILENAME_ZENDLOCALEDATA_BLACKLIST;
-	$blacklist_contents = file_get_contents($blacklist_file);
+	$blacklist_contents = file_get_contents($zend_locale_data_blacklist);
 	$blacklist_contents = str_replace("\r\n", "\n", $blacklist_contents);
 	$blacklist_contents = str_replace("\r", "\n", $blacklist_contents);
 	$remove_filenames = explode("\n", $blacklist_contents);
@@ -216,7 +241,7 @@ if (REMOVE_NONENGLIGH_ZEND_LOCALE_DATA) {
 
 
 # REMOVE EMPTY TOP-LEVEL FOLDERS ##############################################
-if (REMOVE_EMPTY_TOPLEVEL_FOLDERS) {
+if ($remove_empty_toplevel_folders) {
 	echo "Removing empty top-level folders...\n";
 	rmdir("{$target_dir}/controllers");
 	rmdir("{$target_dir}/css");
