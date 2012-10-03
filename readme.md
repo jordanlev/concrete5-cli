@@ -29,6 +29,6 @@ This will save you a lot of time if you build sites for clients or test addons a
     * Try running the following commands in Terminal:
 
             sudo mkdir /var/mysql
-            sudo ln -s /Applications/MAMP/tmp/mysql/mysql.sock mysql.sock
+			sudo ln -s /Applications/MAMP/tmp/mysql/mysql.sock /var/mysql/mysql.sock
 
 * When installing 5.5.1, you will see a few php warnings outputted to the Terminal after the `20%: Adding admin user.` step. This doesn't seem to interfere with installation at all so I think it's safe to ignore these warnings.
