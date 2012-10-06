@@ -141,14 +141,17 @@ if (empty($zend_locale_data_blacklist)) {
 # CHECK DATABASE (ALSO SERVES AS A CHECK TO ENSURE MAMP IS RUNNING) ###########
 $sql = "SHOW DATABASES LIKE '{$database}'";
 $db_check = mysql_exec($sql, true);
+
 if (strpos($db_check, 'ERROR') === 0) {
 	echo "ABORTING INSTALLATION: THE FOLLOWING DATABASE ERROR OCCURRED: {$db_check}\n";
+	if (strpos($db_check, 'ERROR 2002') === 0) {
+		echo "(Make sure MAMP is up and running and that the MySQL server has started.)\n\n";
+	}
 	exit;
 } else if (strlen($db_check) > 0) {
 	echo "ABORTING INSTALLATION: DATABASE ({$database}) ALREADY EXISTS!\n";
 	exit;
 }
-
 
 # VALIDATE & SETUP DIRECTORIES AND FILES ######################################
 $parent_dir = dirname($target_dir);
@@ -308,7 +311,7 @@ function mysql_exec($sql, $return_output = false) {
 	$command = MYSQL_BIN
              . ' -u' . DB_USERNAME
              . ((DB_PASSWORD == '') ? '' : ' -p' . DB_PASSWORD)
-             . ' -e "' . $sql . '"';
+             . ' -e "' . $sql . '" 2>&1'; //the 2>&1 redirects STDERR to STDOUT (because the command might result in an error which doesn't actually output anything, but we want to return that error message as if it were outputted -- e.g. if MySQL isn't running)
 	if ($return_output) {
 		return shell_exec($command);
 	} else {
