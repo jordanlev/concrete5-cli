@@ -1,5 +1,4 @@
 // define('URL_REWRITING_ALL', true);
-// define('ENABLE_APPLICATION_EVENTS', true); //required in 5.5.1+ (when using a config/site_events.php file), despite what the documentation says!
 define('STATISTICS_TRACK_PAGE_VIEWS', false);
 
 define('ENABLE_MARKETPLACE_SUPPORT', false);
