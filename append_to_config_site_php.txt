@@ -19,3 +19,5 @@ define('DASHBOARD_BACKGROUND_INFO', false);
 // define('EMAIL_ADDRESS_REGISTER_NOTIFICATION', 'example1@example.com, example2@example.com');
 // define('EMAIL_ADDRESS_REGISTER_NOTIFICATION_FROM', EMAIL_DEFAULT_FROM_ADDRESS);
 // define('FORM_BLOCK_SENDER_EMAIL', EMAIL_DEFAULT_FROM_ADDRESS);
+
+// define('ENABLE_APPLICATION_EVENTS', true); //required in 5.5.1+ (when using a config/site_events.php file), despite what the documentation says!

@@ -4,7 +4,7 @@ Improves the Concrete5 command-line installer in numerous ways:
  * Specifically-tailored to work with MAMP on OSX
  * Provides an interactive prompt so you don't need to remember command-line arguments or syntax
  * One script file works with all versions of C5 since 5.5.1 (as opposed to the official release, which requires separate scripts for each version, and doesn't even work with 5.5.1)
- * Optionally removes non-english Zend/Locale/Data files (which cuts down the overall size of the c5 installation in half -- approx. 10MB)
+ * Optionally removes non-english Zend/Locale/Data files (which cuts down the overall size of the c5 installation by approx. 10MB)
  * Optionally deletes some empty top-level folders (`controllers`, `css`, `elements`, `helpers`, `jobs`, `js`, `languages`, `libraries`, `mail`, `models`, `page_types`, `single_pages`, `tools`, and `updates`) and files (`INSTALL` and `LICENSE.TXT`). _I like to do this so I can quickly see if a site has core overrides -- otherwise you have to look inside every folder. Note that I leave the empty `blocks`, `packages`, and `themes` folders in place because those are almost always used on every site._
 
 This will save you a lot of time if you build sites for clients or test addons and themes regularly!
