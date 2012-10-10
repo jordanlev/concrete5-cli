@@ -246,6 +246,7 @@ if ($remove_nonengligh_zend_locale_data) {
 # REMOVE EMPTY TOP-LEVEL FOLDERS ##############################################
 if ($remove_empty_toplevel_folders) {
 	echo "Removing empty top-level folders...\n";
+	fix_exception_raised_when_no_jobs_dir($target_dir, $version['name']);
 	rmdir("{$target_dir}/controllers");
 	rmdir("{$target_dir}/css");
 	rmdir("{$target_dir}/elements");
@@ -325,14 +326,30 @@ function strip_unsafe_cli_chars($str) {
 }
 
 function fix_551_install_controller_bug($target_dir) {
+	$search = "\$this->redirect('/');";
+	$replace = "if (PHP_SAPI != 'cli') { \$this->redirect('/'); }";
 	$file = $target_dir . '/concrete/controllers/install.php';
-	
+	file_replace_contents($search, $replace, $file);
+}
+
+function fix_exception_raised_when_no_jobs_dir($target_dir, $version) {
+	$search = 'else throw new Exception( t(\'Error: Invalid Jobs Directory %s\', $jobClassLocation) );';
+	$replace = '';
+	if (version_compare($version, '5.6', '<')) {
+		$file = $target_dir . '/concrete/models/job.php';
+	} else {
+		$file = $target_dir . '/concrete/core/models/job.php';
+	}
+	file_replace_contents($search, $replace, $file);
+}
+
+function file_replace_contents($search, $replace, $file) {
 	$size = filesize($file);
 	$handle = fopen($file, 'r');
 	$contents = fread($handle, $size);
 	fclose($handle);
 	
-	$contents = str_replace("\$this->redirect('/');", "if (PHP_SAPI != 'cli') { \$this->redirect('/'); }", $contents);
+	$contents = str_replace($search, $replace, $contents);
 
 	$handle = fopen($file, 'w');
 	fwrite($handle, $contents);
