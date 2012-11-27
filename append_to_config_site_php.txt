@@ -13,7 +13,8 @@ define('DASHBOARD_BACKGROUND_INFO', false);
 // define('APP_TIMEZONE', 'America/Chicago');
 
 // define('SESSION', 'CONCRETE5');
-// define('SESSION_MAX_LIFETIME', 7200); // browser session (seconds before user is logged out, or 0 for never)
+// define('SESSION_MAX_LIFETIME', 7200); // browser session (seconds of inactivity before user is logged out, or 0 for never)
+// define('CACHE_FRONTEND_OPTIONS', serialize(array('automatic_cleaning_factor' => 0))); //May dramatically improve performance, but /files/cache directory will get LARGE -- see http://andrewembler.com/posts/improving-the-performance-of-zend-cache/
 
 // define('EMAIL_DEFAULT_FROM_ADDRESS', 'example@example.com');
 // define('EMAIL_DEFAULT_FROM_NAME', 'John Smith');
