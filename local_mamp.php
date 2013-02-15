@@ -16,10 +16,15 @@ define('FILENAME_ZENDLOCALEDATA_BLACKLIST', 'remove_zend_locale_data.txt'); //op
 
 //Available C5 versions for installation (note that 5.5.1 was the first version to allow CLI installation).
 //First one in list becomes default option.
-//"unzips_to" is the name of the folder that you wind up with after unzipping the download
-// (so far this has always been the word "concrete" followed by the version number,
-//  but theoretically this could change in the future?).
+//"unzips_to" is the name of the folder inside the downloaded zip file
+// (so far, they've always named this the word "concrete" followed by the version number,
+//  but theoretically they could change it in the future?).
 $c5_versions = array(
+	array(
+		'name' => '5.6.1',
+		'url' => 'http://www.concrete5.org/download_file/-/view/49906/8497/',
+		'unzips_to' => 'concrete5.6.1',
+	),
 	array(
 		'name' => '5.6.0.2',
 		'url' => 'http://www.concrete5.org/download_file/-/view/44326/8497/',
@@ -246,7 +251,7 @@ if ($remove_nonengligh_zend_locale_data) {
 # REMOVE EMPTY TOP-LEVEL FOLDERS ##############################################
 if ($remove_empty_toplevel_folders) {
 	echo "Removing empty top-level folders...\n";
-	fix_exception_raised_when_no_jobs_dir($target_dir, $version['name']);
+	fix_exception_raised_when_no_jobs_dir($target_dir, $version['name']); //fixed in 5.6.1... so this function does nothing on 5.6.1+
 	rmdir("{$target_dir}/controllers");
 	rmdir("{$target_dir}/css");
 	rmdir("{$target_dir}/elements");
@@ -333,14 +338,17 @@ function fix_551_install_controller_bug($target_dir) {
 }
 
 function fix_exception_raised_when_no_jobs_dir($target_dir, $version) {
-	$search = 'else throw new Exception( t(\'Error: Invalid Jobs Directory %s\', $jobClassLocation) );';
-	$replace = '';
-	if (version_compare($version, '5.6', '<')) {
-		$file = $target_dir . '/concrete/models/job.php';
-	} else {
-		$file = $target_dir . '/concrete/core/models/job.php';
+	//This issue was fixed in 5.6.1, so only fix it manually in lesser versions...
+	if (version_compare($version, '5.6.1', '<')) {
+		$search = 'else throw new Exception( t(\'Error: Invalid Jobs Directory %s\', $jobClassLocation) );';
+		$replace = '';
+		if (version_compare($version, '5.6', '<')) {
+			$file = $target_dir . '/concrete/models/job.php';
+		} else {
+			$file = $target_dir . '/concrete/core/models/job.php';
+		}
+		file_replace_contents($search, $replace, $file);
 	}
-	file_replace_contents($search, $replace, $file);
 }
 
 function file_replace_contents($search, $replace, $file) {

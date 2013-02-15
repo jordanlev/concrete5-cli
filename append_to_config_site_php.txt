@@ -1,4 +1,5 @@
 // define('URL_REWRITING_ALL', true);
+define('PAGE_TITLE_FORMAT', '%2$s :: %1$s'); // "%1$s" is site name, "%2$s" is page title
 define('STATISTICS_TRACK_PAGE_VIEWS', false);
 
 define('ENABLE_MARKETPLACE_SUPPORT', false);
@@ -7,14 +8,11 @@ define('ENABLE_NEWSFLOW_OVERLAY', false);
 define('ENABLE_APP_NEWS', false);
 define('WHITE_LABEL_DASHBOARD_BACKGROUND_SRC', 'none');
 define('DASHBOARD_BACKGROUND_INFO', false);
-// define('WHITE_LABEL_LOGO_SRC', '/images/toolbar-logo.png'); //49px x 49px
+// define('WHITE_LABEL_LOGO_SRC', substr($_SERVER['SCRIPT_NAME'], 0, stripos($_SERVER['SCRIPT_NAME'], 'index.php')) . 'images/toolbar-logo.png'); //49px x 49px
 
-// define('PAGE_TITLE_FORMAT', '%2$s :: %1$s'); // "%1$s" is site name, "%2$s" is page title
 // define('APP_TIMEZONE', 'America/Chicago');
-
 // define('SESSION', 'CONCRETE5');
 // define('SESSION_MAX_LIFETIME', 7200); // browser session (seconds of inactivity before user is logged out, or 0 for never)
-// define('CACHE_FRONTEND_OPTIONS', serialize(array('automatic_cleaning_factor' => 0))); //May dramatically improve performance, but /files/cache directory will get LARGE -- see http://andrewembler.com/posts/improving-the-performance-of-zend-cache/
 
 // define('EMAIL_DEFAULT_FROM_ADDRESS', 'example@example.com');
 // define('EMAIL_DEFAULT_FROM_NAME', 'John Smith');
@@ -22,7 +20,16 @@ define('DASHBOARD_BACKGROUND_INFO', false);
 // define('EMAIL_ADDRESS_REGISTER_NOTIFICATION_FROM', EMAIL_DEFAULT_FROM_ADDRESS);
 // define('FORM_BLOCK_SENDER_EMAIL', EMAIL_DEFAULT_FROM_ADDRESS);
 
-// define('ENABLE_APPLICATION_EVENTS', true); //required in 5.5.1+ when using a config/site_events.php file (despite what the documentation says!)
 // define('PERMISSIONS_MODEL', 'advanced');
 // define('ENABLE_AREA_LAYOUTS', false);
 // define('ENABLE_CUSTOM_DESIGN', false);
+
+/*** VERSION-SPECIFIC SETTINGS...
+//this one is required in 5.5.1 thru 5.6.0.2 when using a config/site_events.php file (despite what the documentation says!) -- has been fixed in 5.6.2 though
+define('ENABLE_APPLICATION_EVENTS', true); //required in 5.5.1+ when using a config/site_events.php file (despite what the documentation says!)
+
+//this one dramatically improves performance, up to 5.6.0.2 -- but is moot as of 5.6.1 (because caching strategy was changed)
+define('CACHE_FRONTEND_OPTIONS', serialize(array('automatic_cleaning_factor' => 0)));
+//NOTE: /files/cache directory will get LARGE -- see http://andrewembler.com/posts/improving-the-performance-of-zend-cache/
+
+*/
