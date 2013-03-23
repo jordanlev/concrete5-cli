@@ -21,10 +21,20 @@ define('FILENAME_ZENDLOCALEDATA_BLACKLIST', 'remove_zend_locale_data.txt'); //op
 //  but theoretically they could change it in the future?).
 $c5_versions = array(
 	array(
-		'name' => '5.6.1',
-		'url' => 'http://www.concrete5.org/download_file/-/view/49906/8497/',
-		'unzips_to' => 'concrete5.6.1',
+		'name' => '5.6.1.2',
+		'url' => 'http://www.concrete5.org/download_file/-/view/51635/8497/',
+		'unzips_to' => 'concrete5.6.1.2',
 	),
+	// array(
+	// 	'name' => '5.6.1.1',
+	// 	'url' => '????', //<--link on c5 downloads page is currently broken
+	// 	'unzips_to' => 'concrete5.6.1.1',
+	// ),
+	// array(
+	// 	'name' => '5.6.1',
+	// 	'url' => 'http://www.concrete5.org/download_file/-/view/49906/8497/',
+	// 	'unzips_to' => 'concrete5.6.1',
+	// ),
 	array(
 		'name' => '5.6.0.2',
 		'url' => 'http://www.concrete5.org/download_file/-/view/44326/8497/',
