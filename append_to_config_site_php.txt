@@ -24,12 +24,12 @@ define('DASHBOARD_BACKGROUND_INFO', false);
 // define('ENABLE_AREA_LAYOUTS', false);
 // define('ENABLE_CUSTOM_DESIGN', false);
 
-/*** VERSION-SPECIFIC SETTINGS...
-//this one is required in 5.5.1 thru 5.6.0.2 when using a config/site_events.php file (despite what the documentation says!) -- has been fixed in 5.6.2 though
-define('ENABLE_APPLICATION_EVENTS', true); //required in 5.5.1+ when using a config/site_events.php file (despite what the documentation says!)
-
-//this one dramatically improves performance, up to 5.6.0.2 -- but is moot as of 5.6.1 (because caching strategy was changed)
-define('CACHE_FRONTEND_OPTIONS', serialize(array('automatic_cleaning_factor' => 0)));
-//NOTE: /files/cache directory will get LARGE -- see http://andrewembler.com/posts/improving-the-performance-of-zend-cache/
-
+/* VERSION-SPECIFIC SETTINGS...
+** //this one is required in 5.5.1 thru 5.6.0.2 when using a config/site_events.php file (despite what the documentation says!) -- has been fixed in 5.6.2 though
+** define('ENABLE_APPLICATION_EVENTS', true); //required in 5.5.1+ when using a config/site_events.php file (despite what the documentation says!)
+** 
+** //this one dramatically improves performance, up to 5.6.0.2 -- but is moot as of 5.6.1 (because caching strategy was changed)
+** define('CACHE_FRONTEND_OPTIONS', serialize(array('automatic_cleaning_factor' => 0)));
+** //NOTE: /files/cache directory will get LARGE -- see http://andrewembler.com/posts/improving-the-performance-of-zend-cache/
+** 
 */
