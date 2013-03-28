@@ -21,47 +21,47 @@ define('FILENAME_ZENDLOCALEDATA_BLACKLIST', 'remove_zend_locale_data.txt'); //op
 //  but theoretically they could change it in the future?).
 $c5_versions = array(
 	array(
-		'name' => '5.6.1.2',
+		'number' => '5.6.1.2',
 		'url' => 'http://www.concrete5.org/download_file/-/view/51635/8497/',
 		'unzips_to' => 'concrete5.6.1.2',
 	),
 	// array(
-	// 	'name' => '5.6.1.1',
+	// 	'number' => '5.6.1.1',
 	// 	'url' => 'http://www.concrete5.org/download_file/-/view/51531/8497/',
 	// 	'unzips_to' => 'concrete5.6.1.1',
 	// ),
 	// array(
-	// 	'name' => '5.6.1',
+	// 	'number' => '5.6.1',
 	// 	'url' => 'http://www.concrete5.org/download_file/-/view/49906/8497/',
 	// 	'unzips_to' => 'concrete5.6.1',
 	// ),
 	array(
-		'name' => '5.6.0.2',
+		'number' => '5.6.0.2',
 		'url' => 'http://www.concrete5.org/download_file/-/view/44326/8497/',
 		'unzips_to' => 'concrete5.6.0.2',
 	),
 	// array(
-	// 	'name' => '5.6.0.1',
+	// 	'number' => '5.6.0.1',
 	// 	'url' => 'http://www.concrete5.org/download_file/-/view/43620/8497/',
 	// 	'unzips_to' => 'concrete5.6.0.1',
 	// ),
 	// array(
-	// 	'name' => '5.6.0',
+	// 	'number' => '5.6.0',
 	// 	'url' => 'http://www.concrete5.org/download_file/-/view/43239/8497/',
 	// 	'unzips_to' => 'concrete5.6.0',
 	// ),
 	array(
-		'name' => '5.5.2.1',
+		'number' => '5.5.2.1',
 		'url' => 'http://www.concrete5.org/download_file/-/view/37862/8497/',
 		'unzips_to' => 'concrete5.5.2.1',
 	),
 	// array(
-	// 	'name' => '5.5.2',
+	// 	'number' => '5.5.2',
 	// 	'url' => 'http://www.concrete5.org/download_file/-/view/36984/8497/',
 	// 	'unzips_to' => 'concrete5.5.2',
 	// ),
 	array(
-		'name' => '5.5.1',
+		'number' => '5.5.1',
 		'url' => 'http://www.concrete5.org/download_file/-/view/33453/8497/',
 		'unzips_to' => 'concrete5.5.1',
 	),
@@ -107,7 +107,7 @@ echo "===========================\n\n";
 # Choose version
 echo "Available Concrete5 versions...\n";
 for ($i = 0, $len = count($c5_versions); $i < $len; $i++) {
-	echo ($i + 1) . ') ' . $c5_versions[$i]['name'];
+	echo ($i + 1) . ') ' . $c5_versions[$i]['number'];
 	echo ($i == 0) ? ' (DEFAULT)' : '';
 	echo "\n";
 }
@@ -185,7 +185,7 @@ system('mkdir -p ' . $parent_dir); //Ensure the target directory's parent direct
 
 
 # DOWNLOAD/INSTALL C5 FILES ###################################################
-echo "Downloading Concrete5 version {$version['name']}...\n";
+echo "Downloading Concrete5 version {$version['number']}...\n";
 system("curl -o {$c5_download_zippath} {$version['url']}");
 
 echo "Unzipping {$c5_download_zippath}...\n";
@@ -201,13 +201,13 @@ if (!is_dir($c5_download_unzipped_dir)) {
 }
 system("mv {$c5_download_unzipped_dir} {$target_dir}");
 
-if ($version['name'] == '5.5.1') {
+if ($version['number'] == '5.5.1') {
 	fix_551_install_controller_bug($target_dir);
 }
 
 # INSTALL DATABASE AND C5 #####################################################
 echo "Creating database $database...\n";
-$sql = "CREATE DATABASE {$database} DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci"; //don't use backticks -- they mess up command line!
+$sql = "CREATE DATABASE \`{$database}\` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci"; //note the very precise escaping of backticks -- if you don't do this, they messup the command line instruction (and if we didn't include backticks, then the SQL command might fail if there are certain characters (e.g. dashes) in the db name
 mysql_exec($sql);
 
 echo "Installing Concrete5...\n";
@@ -261,7 +261,10 @@ if ($remove_nonengligh_zend_locale_data) {
 # REMOVE EMPTY TOP-LEVEL FOLDERS ##############################################
 if ($remove_empty_toplevel_folders) {
 	echo "Removing empty top-level folders...\n";
-	fix_exception_raised_when_no_jobs_dir($target_dir, $version['name']); //fixed in 5.6.1... so this function does nothing on 5.6.1+
+	if (version_compare($version['number'], '5.6.1', '<')) {
+		fix_lt561_exception_raised_when_no_jobs_dir($target_dir, $version);
+	}
+	rmdir("{$target_dir}/blocks"); //???
 	rmdir("{$target_dir}/controllers");
 	rmdir("{$target_dir}/css");
 	rmdir("{$target_dir}/elements");
@@ -272,8 +275,10 @@ if ($remove_empty_toplevel_folders) {
 	rmdir("{$target_dir}/libraries");
 	rmdir("{$target_dir}/mail");
 	rmdir("{$target_dir}/models");
+	rmdir("{$target_dir}/packages"); //???
 	rmdir("{$target_dir}/page_types");
 	rmdir("{$target_dir}/single_pages");
+	rmdir("{$target_dir}/themes"); //???
 	rmdir("{$target_dir}/tools");
 	rmdir("{$target_dir}/updates");
 	unlink("{$target_dir}/INSTALL");
@@ -341,24 +346,23 @@ function strip_unsafe_cli_chars($str) {
 }
 
 function fix_551_install_controller_bug($target_dir) {
+	//This issue only applies to 5.5.1, so don't call this function if you're on 5.5.2+
 	$search = "\$this->redirect('/');";
 	$replace = "if (PHP_SAPI != 'cli') { \$this->redirect('/'); }";
 	$file = $target_dir . '/concrete/controllers/install.php';
 	file_replace_contents($search, $replace, $file);
 }
 
-function fix_exception_raised_when_no_jobs_dir($target_dir, $version) {
-	//This issue was fixed in 5.6.1, so only fix it manually in lesser versions...
-	if (version_compare($version, '5.6.1', '<')) {
-		$search = 'else throw new Exception( t(\'Error: Invalid Jobs Directory %s\', $jobClassLocation) );';
-		$replace = '';
-		if (version_compare($version, '5.6', '<')) {
-			$file = $target_dir . '/concrete/models/job.php';
-		} else {
-			$file = $target_dir . '/concrete/core/models/job.php';
-		}
-		file_replace_contents($search, $replace, $file);
+function fix_lt561_exception_raised_when_no_jobs_dir($target_dir, $version) {
+	//This issue was fixed in 5.6.1, so don't call this function if you're on 5.6.1+
+	$search = 'else throw new Exception( t(\'Error: Invalid Jobs Directory %s\', $jobClassLocation) );';
+	$replace = '';
+	if (version_compare($version['number'], '5.6', '<')) {
+		$file = $target_dir . '/concrete/models/job.php';
+	} else {
+		$file = $target_dir . '/concrete/core/models/job.php';
 	}
+	file_replace_contents($search, $replace, $file);
 }
 
 function file_replace_contents($search, $replace, $file) {

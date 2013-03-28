@@ -23,7 +23,17 @@
       if (parseInt(response.success)) {
         window.location.href = dir + '/index.php/dashboard/system/optimization/cache/';
       } else {
-        $('#loading').html('Error: could not log in.');
+        //Try again...
+        setTimeout(function() {
+          $.post(url, data, function(response) {
+            if (parseInt(response.success)) {
+              window.location.href = dir + '/index.php/dashboard/system/optimization/cache/';
+            } else {
+              $('#loading').html('Error: could not log in.');
+            }
+          }, 'json');
+        }, 2000);
+        //END try again
       }
     }, 'json');
   });
