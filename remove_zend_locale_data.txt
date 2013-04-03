@@ -297,7 +297,6 @@ pt_PT.xml
 ro.xml
 ro_MD.xml
 ro_RO.xml
-root.xml
 ru.xml
 ru_RU.xml
 ru_UA.xml
