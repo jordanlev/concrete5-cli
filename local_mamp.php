@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/usr/bin/env php
 <?php
 
 # INTERNAL SETTINGS ###########################################################
@@ -255,6 +255,10 @@ if ($remove_nonengligh_zend_locale_data) {
 			unlink("{$zend_locale_data_dir}/{$filename}");
 		}
 	}
+	
+	//random note: if you want to remove these files from a site that has already been installed,
+	//             copy the remove_zend_locale_data.txt file into SITE/concrete/libraries/3rdparty/Zend/Locale/Data/
+	//             and then run this from the command line:   rm `cat remove_zend_locale_data.txt`
 }
 
 
