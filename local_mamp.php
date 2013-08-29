@@ -8,69 +8,21 @@ define('STARTING_POINT_NAME_SAMPLE_CONTENT', 'standard');
 define('STARTING_POINT_NAME_EMPTY_CONTENT', 'blank');
 
 //The following files must exist in the same directory as this-here local_mamp.php script:
+define('FILENAME_DOWNLOAD_URLS', 'download_urls.php'); //required
 define('FILENAME_SETTINGS', 'settings.php'); //required
 define('FILENAME_INSTALL_C5_CLI', 'install-concrete5.php'); //required
 define('FILENAME_ADD_TO_CONFIG', 'append_to_config_site_php.txt'); //optional (use empty string if none)
 define('FILENAME_CLI_LOGIN', 'temp_cli_login.html'); //optional (use empty string if none)
 define('FILENAME_ZENDLOCALEDATA_BLACKLIST', 'remove_zend_locale_data.txt'); //optional (use empty string if none).
 
-//Available C5 versions for installation (note that 5.5.1 was the first version to allow CLI installation).
-//First one in list becomes default option.
-//"unzips_to" is the name of the folder inside the downloaded zip file
-// (so far, they've always named this the word "concrete" followed by the version number,
-//  but theoretically they could change it in the future?).
-$c5_versions = array(
-	array(
-		'number' => '5.6.2',
-		'url' => 'http://www.concrete5.org/download_file/-/view/57877/8497/',
-		'unzips_to' => 'concrete5.6.2',
-	),
-	array(
-		'number' => '5.6.1.2',
-		'url' => 'http://www.concrete5.org/download_file/-/view/51635/8497/',
-		'unzips_to' => 'concrete5.6.1.2',
-	),
-	// array(
-	// 	'number' => '5.6.1.1',
-	// 	'url' => 'http://www.concrete5.org/download_file/-/view/51531/8497/',
-	// 	'unzips_to' => 'concrete5.6.1.1',
-	// ),
-	// array(
-	// 	'number' => '5.6.1',
-	// 	'url' => 'http://www.concrete5.org/download_file/-/view/49906/8497/',
-	// 	'unzips_to' => 'concrete5.6.1',
-	// ),
-	array(
-		'number' => '5.6.0.2',
-		'url' => 'http://www.concrete5.org/download_file/-/view/44326/8497/',
-		'unzips_to' => 'concrete5.6.0.2',
-	),
-	// array(
-	// 	'number' => '5.6.0.1',
-	// 	'url' => 'http://www.concrete5.org/download_file/-/view/43620/8497/',
-	// 	'unzips_to' => 'concrete5.6.0.1',
-	// ),
-	// array(
-	// 	'number' => '5.6.0',
-	// 	'url' => 'http://www.concrete5.org/download_file/-/view/43239/8497/',
-	// 	'unzips_to' => 'concrete5.6.0',
-	// ),
-	array(
-		'number' => '5.5.2.1',
-		'url' => 'http://www.concrete5.org/download_file/-/view/37862/8497/',
-		'unzips_to' => 'concrete5.5.2.1',
-	),
-	// array(
-	// 	'number' => '5.5.2',
-	// 	'url' => 'http://www.concrete5.org/download_file/-/view/36984/8497/',
-	// 	'unzips_to' => 'concrete5.5.2',
-	// ),
-	array(
-		'number' => '5.5.1',
-		'url' => 'http://www.concrete5.org/download_file/-/view/33453/8497/',
-		'unzips_to' => 'concrete5.5.1',
-	),
-);
+
+# LOAD AVAILABLE C5 VERSIONS ##################################################
+$download_urls_file_path = dirname(__FILE__) . '/' . FILENAME_DOWNLOAD_URLS;
+if (!is_file($download_urls_file_path)) {
+	echo "ABORTING INSTALLATION: CANNOT LOCATE DOWNLOAD-URLS FILE ({$download_urls_file_path})!\n";
+	exit;
+}
+require($download_urls_file_path); //sets the $c5_versions array
 
 
 # LOAD USER SETTINGS ##########################################################
