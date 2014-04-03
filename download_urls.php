@@ -9,11 +9,6 @@
 
 $c5_versions = array(
 	array(
-		'number' => '5.6.3',
-		'url' => 'http://www.concrete5.org/download_file/-/view/65413/8497/',
-		'unzips_to' => 'concrete5.6.3',
-	),
-	array(
 		'number' => '5.6.2.1',
 		'url' => 'http://www.concrete5.org/download_file/-/view/58379/8497/',
 		'unzips_to' => 'concrete5.6.2.1',
